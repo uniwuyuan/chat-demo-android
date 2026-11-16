@@ -29,28 +29,27 @@ type Bridge = {
 # 1) 先生成 web 产物
 cd ../chat-demo && pnpm install && pnpm build
 
-# 2) 打 APK（本机 arm64 方案：apt 的 aapt + 官方 d8.jar + apksigner）
+# 2) 打 APK（arm64 环境用发行版 aapt + 官方 d8.jar + apksigner）
 cd ../chat-demo-android && ./build.sh
 ```
 
-产物：`dist/chat-demo-<version>.apk`，同时拷贝到 `/sdcard/Download/DSH-Go/`。
+产物：`dist/chat-demo-<version>.apk`。需要自动投递到指定目录时，用 `DEST=/path/to/dir ./build.sh`。
 
-本机是 arm64，官方 build-tools 里的 aapt2 只有 x86_64，所以脚本用 apt 的 `aapt`/`zipalign`/`apksigner`
-配合官方 `d8.jar`（纯 Java）。`PLATFORM`、`D8_JAR`、`WEB` 三个变量可用环境变量覆盖。
+官方 build-tools 只提供 x86_64 的 aapt2；在 arm64 环境（例如手机上跑 Ubuntu）里，脚本改用发行版的
+`aapt`/`zipalign`/`apksigner` 配合官方 `d8.jar`（纯 Java）完成打包。`PLATFORM`、`D8_JAR`、`WEB`、`DEST`
+都可以用环境变量覆盖。
 
 ---
 
-把 [deepseek-ai/chat-demo](https://github.com/deepseek-ai/chat-demo) 的静态产物（`/root/workspace/chat-demo/dist`）装进一个最小 Android 工程，
+把 [deepseek-ai/chat-demo](https://github.com/deepseek-ai/chat-demo) 的静态产物（`chat-demo/dist`）装进一个最小 Android 工程，
 用 WebView 跑成能装到手机桌面的 App。设置页底部多了一行「致谢 DeepSeek 的开源」。
 
 ## 产物
 
-- `dist/chat-demo-0.2.2.apk`（已签名，v2/v3，versionCode 4）
-- 手机里同一份：`/sdcard/Download/DSH-Go/chat-demo-0.2.2.apk`
 
 ## 安装
 
-文件管理 → Download/DSH-Go/chat-demo-0.2.2.apk → 安装（首次会要求允许「未知来源」）。
+从 [Releases](../../releases) 下载最新 APK 安装（首次会要求允许「未知来源」）。
 装好后桌面图标名是 **DeepSeek Chat Demo**，首次进入在 设置 → 数据管理 里填 API Key。
 
 ## 斜杠命令（0.2.0 加入）
@@ -126,8 +125,8 @@ keystore.jks                          自签名证书（口令 chatdemo）
 ## 重新构建
 
 ```sh
-cd /root/workspace/chat-demo && pnpm build      # 网页产物 → dist
-cd /root/workspace/chat-demo-android && ./build.sh
+cd ../chat-demo && pnpm build      # 网页产物 → dist
+cd ../chat-demo-android && ./build.sh
 ```
 
 脚本用 apt 的 `aapt` / `zipalign` / `apksigner`（arm64）加官方 `d8.jar`（纯 Java），

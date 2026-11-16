@@ -1,16 +1,18 @@
 #!/usr/bin/env bash
 # 把 chat-demo 的静态产物打成可安装的 Android APK。
-# 本机是 arm64，Android 官方 build-tools 只有 x86_64 原生程序，
-# 所以这里用 apt 的 aapt/zipalign/apksigner（arm64）+ 官方 d8.jar（纯 Java）组合。
+# 官方 build-tools 只提供 x86_64 原生程序；在 arm64 机器（如手机上跑 Ubuntu）上
+# 用发行版的 aapt/zipalign/apksigner + 官方 d8.jar（纯 Java）完成同样的打包。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
-PLATFORM="${PLATFORM:-/root/sdk-dl/android-34/android.jar}"
-D8_JAR="${D8_JAR:-/root/sdk-dl/android-14/lib/d8.jar}"
+# 需要预先准备：Android SDK platform（android.jar）、build-tools 里的 d8.jar、apt 的 aapt/zipalign/apksigner
+PLATFORM="${PLATFORM:-$HOME/Android/platforms/android-34/android.jar}"
+D8_JAR="${D8_JAR:-$HOME/Android/build-tools/34.0.0/lib/d8.jar}"
 SRC="$ROOT/app/src/main"
 OUT="$ROOT/build"
 DIST="$ROOT/dist"
-WEB="${WEB:-/root/workspace/chat-demo/dist}"
+# web 产物目录；默认取同级的 chat-demo/dist
+WEB="${WEB:-../chat-demo/dist}"
 
 VERSION_CODE="${VERSION_CODE:-1}"
 VERSION_NAME="${VERSION_NAME:-0.1.1}"
@@ -67,5 +69,8 @@ apksigner sign --ks "$KS" --ks-pass pass:chatdemo --key-pass pass:chatdemo \
   --out "$DIST/chat-demo-$VERSION_NAME.apk" "$OUT/aligned.apk"
 apksigner verify --print-certs "$DIST/chat-demo-$VERSION_NAME.apk" | head -3
 
-cp "$DIST/chat-demo-$VERSION_NAME.apk" "/sdcard/Download/DSH-Go/chat-demo-$VERSION_NAME.apk"
+# 需要额外投递时设置 DEST（例如手机下载目录），不设置就只留在 dist/
+if [ -n "${DEST:-}" ]; then
+  mkdir -p "$DEST" && cp "$DIST/chat-demo-$VERSION_NAME.apk" "$DEST/" && echo "已复制到 $DEST"
+fi
 ls -lh "$DIST/chat-demo-$VERSION_NAME.apk"
