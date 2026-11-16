@@ -1,0 +1,9 @@
+# 构建产物
+build/
+dist/
+# 由 chat-demo/dist 拷贝而来，不提交
+app/src/main/assets/
+# 自签名密钥，按需在本地生成
+keystore.jks
+keystore.jks.idsig
+*.idsig
